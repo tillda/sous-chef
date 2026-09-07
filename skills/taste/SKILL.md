@@ -21,7 +21,8 @@ git diff --shortstat && git diff --shortstat --cached
 - Post-fire review (a pre-fire baseline exists - inside `/sous-chef:serve`, or tasting
   a fire's result on a tree that was dirty before the fire): the change under review
   is the delta since that baseline, never the whole tree. Scope the prompt to it -
-  name the files the run touched, and point at the baseline patch for files that mix
+  name the files the run touched, and provide the baseline/post-worker tree diff
+  from fire's [snapshot recipe](../fire/references/tree-snapshot.md) for files that mix
   fired changes with prior WIP. Findings against pre-existing WIP would send a refire
   rewriting the user's own uncommitted work; say in the report that WIP was excluded.
 - Empty scope → say there's nothing to review; don't run Codex on nothing.

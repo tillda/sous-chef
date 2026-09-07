@@ -24,7 +24,7 @@ started: <UTC ISO-8601 of stage 1's fire>
 budget: 5
 runs_used: 2 (fire, taste)
 stage: taste plated; next: refire
-baseline: <abs path to stage 1's pre-fire.patch>
+baseline: <abs path to stage 1's baseline.tree>
 findings: <abs path to taste's findings.md>
 job: <abs path to the job dir currently cooking, if any>
 ```
@@ -51,14 +51,14 @@ Claude's validation pass is the only cross-model check in that run.
 ## The pipeline
 
 1. **Fire** - per `/sous-chef:fire`: preflight, ticket, backgrounded run, plating with
-   your own verification. Record the job's `pre-fire.patch` path as `baseline:` in
+   your own verification. Record the job's `baseline.tree` path as `baseline:` in
    state.md - later stages scope against it. If plating fails verification, one delta
    round (it counts against the serve budget). The pipeline advances only on green
    verification: still red after the delta means fix it yourself if a surgical fix
    will do, otherwise stop and report honestly - tasting a known-broken
    implementation wastes the remaining budget.
 2. **Taste** - per `/sous-chef:taste`: read-only cross-review scoped to the delta
-   against the `baseline:` patch in state.md - the user's pre-existing WIP is not
+   against the `baseline:` tree in state.md - the user's pre-existing WIP is not
    part of this order - then your validation pass; record the resulting
    `findings.md` path as `findings:`. Skip only if the diff is trivial (a few
    lines); say so in the final report.

@@ -30,10 +30,10 @@ Same as fire, and for the same reasons:
    `/sous-chef:mise` (Codex silently ignores a missing profile).
 3. Mint a fresh job dir: `JOB=$(mktemp -d "$SCRATCHPAD/refire-XXXXXX")`
    (`$SCRATCHPAD` is your session scratchpad directory; substitute its absolute path).
-4. Snapshot the tree: save `git diff` and `git status --short` into `$JOB` as the
-   baseline. The tree is usually dirty here (it holds the diff that was just tasted);
-   that is expected; the baseline is what separates the tasted diff from the refire's
-   changes.
+4. Snapshot staged, unstaged and untracked content using fire's
+   [tree snapshot recipe](../fire/references/tree-snapshot.md). The dirty tree
+   normally contains the tasted implementation. Preserve it as the baseline and
+   compare against a separate post-refire snapshot to isolate this fix run.
 5. Anchor check: recompute
    `$(git rev-parse --short HEAD)+$(idx=$(mktemp -u); GIT_INDEX_FILE=$idx git add -A && GIT_INDEX_FILE=$idx git write-tree | cut -c1-12)`
    and compare it to the `tree:` line in the findings' header. On mismatch - or no
@@ -84,4 +84,4 @@ sandbox banner):
 
 One refire per taste. If a finding survives its refire, do not loop: fix it yourself
 or bring it back to the user with what was tried. (Same diminishing-returns rule as
-fire's two-delta cap.)
+fire's one-delta cap.)
