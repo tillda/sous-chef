@@ -140,4 +140,4 @@ report the blocker; do not recursively fire additional deltas.
 
 ## If Codex is unavailable
 
-If `codex` is missing, unauthenticated, or the profile doesn't exist (preflight step 2), say so and offer to run `/sous-chef:mise` - don't silently implement the task yourself without telling the user the delegation failed.
+If `codex` is missing, unauthenticated, or the profile doesn't exist (preflight step 2), say so and offer both ways on: run `/sous-chef:mise`, or cook it yourself (the **Me** path). Never switch to cooking it yourself without telling the user the delegation failed.

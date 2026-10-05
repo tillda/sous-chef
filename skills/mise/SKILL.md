@@ -5,8 +5,9 @@ description: Mise en place - setup and health check. Verifies Codex CLI and auth
 
 # Mise en place - set up the kitchen before service
 
-Every other skill assumes a chain: CLI → auth → profile → repo standards → routing
-policy, proven by a smoke test. Mise walks that chain and makes each link true.
+Every Codex run - whenever the user picks Codex to cook, and every taste - assumes a
+chain: CLI → auth → profile → repo standards → routing policy, proven by a smoke
+test. Mise walks that chain and makes each link true.
 Open with the plan so the user knows the shape: "Four checks, at most a couple of
 questions, one ~30s smoke test." Report each check as pass/fixed/needs-user, **batch
 any questions into a single AskUserQuestion call** rather than interrogating one at
