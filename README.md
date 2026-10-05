@@ -23,13 +23,18 @@ re-runs everything itself.
 ## Two commands
 
 **`/sous-chef:serve`** is for task-shaped work, done end to end: implement,
-cross-review, fix the findings, verify. One announcement up front, one report at the
-end, a hard budget of five Codex runs in between. This is the daily driver.
+cross-review, fix the findings, verify. One question up front (who cooks - Claude
+here, or Codex), one report at the end, a hard budget of five Codex runs in between.
+This is the daily driver.
 
 **`/sous-chef:simmer`** is for goal-shaped work, looped until a command passes:
-"make the suite green", "get the benchmark under 200ms". A fresh Codex run each lap,
-Claude judging every lap with real command output, on a dedicated branch, with lap
-caps and no-progress detection. The worker never grades its own homework.
+"make the suite green", "get the benchmark under 200ms". Each lap cooked by Codex or
+by Claude (you pick), Claude judging every lap with real command output, on a
+dedicated branch, with lap caps and no-progress detection. Command output is the
+verdict, never the worker's claims.
+
+Every command that writes code asks you who cooks - Claude in the session, or Codex -
+unless your request already said.
 
 Rule of thumb: **serve a task, simmer a goal.** If a serve runs out of budget and
 what remains is goal-shaped, it offers to continue as a simmer.
@@ -38,9 +43,9 @@ what remains is goal-shaped, it offers to continue as a simmer.
 
 | Command | What it does |
 |---|---|
-| `/sous-chef:fire` | Write the ticket, delegate one implementation run, review the diff against a pre-fire baseline, verify. |
+| `/sous-chef:fire` | Ask who cooks. Claude implements here, or Claude writes the ticket, delegates one implementation run, and reviews the diff against a pre-fire baseline. Then verify. |
 | `/sous-chef:taste` | Cross-model review, read-only. Claude validates every finding against the code and filters false positives before you see them. |
-| `/sous-chef:refire` | Turn the confirmed findings from a taste into one scoped fix run, then re-verify each finding at its cited location. |
+| `/sous-chef:refire` | Turn the confirmed findings from a taste into one scoped fix (Claude or Codex - it asks), then re-verify each finding at its cited location. |
 | `/sous-chef:mise` | Setup: Codex CLI + auth checks, delegation profile, `AGENTS.md` scaffold, routing policy (manual or autonomous). Once per machine, once per repo. |
 | `/sous-chef:receipts` | Print the check: the repo's last ten run receipts as a table with a savings total; reprint any receipt's shareable summary. |
 

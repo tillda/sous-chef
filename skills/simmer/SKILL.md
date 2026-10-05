@@ -1,18 +1,20 @@
 ---
 name: simmer
-description: Runs a goal loop - Codex implements fresh laps while Claude verifies each against a machine-checkable goal, until it passes or the budget runs out. Use only when the user explicitly asks for a loop ("simmer this", "loop until tests pass", "iterate until green") - it creates a branch and checkpoint commits, so confirm the contract first.
+description: Runs a goal loop - Codex or Claude (the user picks) cooks each lap while Claude verifies it against a machine-checkable goal, until it passes or the budget runs out. Use only when the user explicitly asks for a loop ("simmer this", "loop until tests pass") - it creates a branch and checkpoint commits, so confirm the contract first.
 ---
 
 # Simmer - reduce until done
 
 A loop is: check state → decide → act → **verify** → repeat, with a stop condition and
-a budget. In this kitchen, Codex is the worker inside the loop and you are the loop's
-author and judge. The worker never grades its own homework - you run the checks. And
+a budget. In this kitchen, the worker inside the loop is Codex or you - the user
+picks - and you are always the loop's author and judge. The verdict is the check
+commands' output, never the worker's claims - your own included when you cook. And
 because each `codex exec` is a fresh context while your own conversation can be
 compacted or restarted mid-loop, neither of you is the loop's memory: the repo is.
 
-If `codex` is missing or `~/.codex/sous-chef.config.toml` doesn't exist, stop and
-offer `/sous-chef:mise` first (Codex silently ignores a missing profile - `test -f`).
+When Codex cooks: if `codex` is missing or `~/.codex/sous-chef.config.toml` doesn't
+exist, stop and offer `/sous-chef:mise` first (Codex silently ignores a missing
+profile - `test -f`).
 The repo must have at least one commit (the no-progress guard needs `HEAD`).
 
 ## 1. Write the loop contract first - and get it confirmed
@@ -25,9 +27,12 @@ before lap 1 (simmer creates a branch and makes commits - say so):
 - **Check commands** - the exact commands that verify the goal (tests, typecheck,
   lint, a curl). Machine-checkable or it doesn't belong in a loop: if success can't be
   verified cheaply by a command, don't simmer - do it interactively instead.
+- **Who cooks** - ask the user (AskUserQuestion): **me** (Claude does each lap here
+  in this session) or **Codex** (a fresh Codex run per lap). Skip the question only
+  when the request already says.
 - **Budget** - max laps (default 5) and any wall-clock limit. Tell the user the
-  realistic wall time: each lap is a full Codex run, typically 5–20 minutes at high
-  reasoning effort.
+  realistic wall time: when Codex cooks, each lap is a full Codex run, typically 5–20
+  minutes at high reasoning effort.
 - **Branch** - create `sous-chef/<task>` yourself before lap 1 and tell the user its
   name up front. Never loop directly on main: a bad run must be a branch delete, not
   an incident. If the repo or user config has commit hooks/gates (pre-commit reviews,
@@ -37,7 +42,7 @@ before lap 1 (simmer creates a branch and makes commits - say so):
 ## 2. Loop state - in the repo, out of git
 
 Add `.sous-chef/` to `$(git rev-parse --git-path info/exclude)` if it isn't there
-yet, then write the contract (goal, check commands, budget, branch with its base
+yet, then write the contract (goal, check commands, who cooks, budget, branch with its base
 commit, and the UTC start time as a `started:` line - the receipt reads it back for
 wallclock, same field name as serve's state.md) to
 `.sous-chef/loop.md` and create `.sous-chef/progress.md`. The state survives session
@@ -77,12 +82,15 @@ For each iteration, until the goal passes or the budget is spent:
    mid-lap can't un-spend a lap, and the job dir is how a later resume proves this
    run's fate. Do not poll while it runs; progress ticks, if the user has them on,
    follow fire's "While it cooks" - armed per lap, disarmed at lap exit.
-2. **Verify yourself** - when it exits, first check the job outcome (non-zero exit or
+   When you cook, do the lap yourself instead: append `lap N: cooking here`, do ONE
+   coherent unit of work from the same inputs, and update `progress.md`. On resume, a
+   `cooking here` line with no verdict counts as spent - judge the tree as it stands.
+2. **Verify yourself** - when a Codex lap exits, first check the job outcome (non-zero exit or
    missing result file = failed lap: rewrite its line to `lap N: fail - run error:
    <cause>`, read the log tail, surface the error, and decide with the user whether
    to retry - a retry is a new launch under the next lap number - or stop). Then run
    the check commands. Their output is
-   the verdict; the worker's claims are not. Record it: rewrite lap N's `fired` line
+   the verdict; the worker's claims are not. Record it: rewrite lap N's `fired` (or `cooking here`) line
    to the verdict - `lap N: pass` or `lap N: fail - <first failing command>:
    <error identity>`. Strip timestamps, durations, and temp paths so an identical
    failure produces an identical line, but keep the failing test or error name -
@@ -126,9 +134,10 @@ For each iteration, until the goal passes or the budget is spent:
 
 ## Relation to native loop primitives
 
-- `/goal` loops Claude-as-worker with a small-model judge; simmer loops
-  **Codex-as-worker with Claude as judge** - use simmer when implementation bulk
-  should burn Codex tokens, `/goal` when the work needs Claude itself.
+- `/goal` loops Claude-as-worker with a small-model judge; simmer loops **Codex or
+  Claude as worker with Claude as judge**, adding the contract, the branch with
+  per-lap checkpoints, and cycling detection. With Claude cooking it overlaps `/goal`
+  most - pick simmer when you want those rails.
 - For recurring maintenance loops (babysit CI, rebase branches, flaky-test repair),
   compose with `/loop 30m /sous-chef:simmer …` - same machine, same working tree, so
   a fresh session finds `.sous-chef/loop.md` and resumes at the recorded lap. A cloud

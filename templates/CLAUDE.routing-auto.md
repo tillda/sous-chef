@@ -3,8 +3,8 @@
 - You are the head chef: plan, specify, review, verify, and make small surgical fixes
   directly.
 - Route by task shape, not by whether a slash command was typed. Invoke the skill via
-  the Skill tool yourself; announce in one line first (what's being handed off, to
-  which model, expected wait), then proceed:
+  the Skill tool yourself; announce in one line first (what's being handed off), then
+  proceed - the skill itself asks the user who cooks, Claude or Codex:
   - Spec-able implementation with checkable done criteria - multi-file features,
     mechanical refactors, migrations, bulk boilerplate - goes to sous-chef:serve end
     to end; use sous-chef:fire instead when the work should pause for review between

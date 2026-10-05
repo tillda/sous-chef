@@ -1,6 +1,6 @@
 ---
 name: fire
-description: Delegates a well-specified implementation task to Codex CLI (or, via --with, Claude Sonnet 5 or opt-in GLM-5.2) in the background. Use when the user asks to hand work to Codex, or for substantial spec-able work - features, refactors, migrations, boilerplate; offer first unless the routing policy is autonomous. Not for small fixes or ambiguous design; never fire silently.
+description: Implements a well-specified task - first asks whether Claude does it here or Codex (or Sonnet 5 / opt-in GLM-5.2) does it in the background. Use when the user asks to hand work to Codex, or for substantial spec-able work - features, refactors, migrations, boilerplate; offer first unless the routing policy is autonomous. Never fire silently.
 ---
 
 # Fire - hand the ticket to the sous-chef
@@ -11,22 +11,36 @@ out of that: everything the worker needs goes on the ticket, and everything the 
 produces lands on disk - the job dir, not this conversation, is the record of the
 run.
 
-## When to fire vs. cook it yourself
+## Who cooks - ask first
 
-Fire when ALL of these hold:
+Before anything else, ask the user one question (AskUserQuestion): who implements
+this - **me (Claude, here in this session)** or **Codex**. List first, marked
+(Recommended), the option the criteria below favor. Skip it only when the user has
+already answered - in this request ("do it yourself", "send it to Codex"), or in the
+serve this fire is a stage of (its `cook:` line).
+
+- **Me** - implement it directly in this session. The ticket's contract still
+  governs - done-when, files to touch and not to touch, constraints - but nothing is
+  delegated. Of the preflight, keep steps 1, 3 and 4 - the tree snapshot is the
+  baseline a later taste scopes against - and skip the profile check, the ticket
+  file, firing, and the wait. When done, run the verification commands yourself and
+  report what changed, with their output and the job dir holding the baseline. No
+  ledger line - there are no worker tokens to count.
+- **Codex** - the rest of this skill.
+
+Recommend Codex when ALL of these hold:
 - The task is implementation, not design - you already know what the end state looks like.
 - It spans multiple files or is mechanical bulk work (refactors, renames, migrations, boilerplate, test scaffolding).
 - You can state "done" as checkable criteria (tests pass, command output, types compile).
 
-Cook it yourself when ANY of these hold:
+Recommend cooking it yourself when ANY of these hold:
 - One-file or few-line surgical fix - the delegation round trip costs more than doing it.
-- The approach is still ambiguous - resolve design questions first, then fire.
+- The approach is still ambiguous - resolve design questions first.
 - The task depends on conversation context that can't be written into a ticket.
 
-Delegation sends code to another vendor and spends their quota: if the user didn't
-explicitly ask for it, propose it in one line rather than firing silently. Exception -
-an autonomous routing policy in the user's CLAUDE.md pre-authorizes the delegation;
-the one-line announcement then replaces the proposal: announce and fire.
+Delegation sends code to another vendor and spends their quota, so it never happens
+silently - the question is the user's say. That holds under an autonomous routing
+policy too: the policy picks the skill, the user picks who cooks.
 
 ## Preflight (all deterministic, run before writing the ticket)
 
@@ -58,11 +72,12 @@ Repo-level standards (build commands, conventions, do-not-touch areas) belong in
 ## Choosing the worker - `--with`
 
 The arguments may begin with `--with <worker>`; strip it before treating the
-rest as the task description. Workers:
+rest as the task description. Naming a worker answers the who-cooks question.
+Workers:
 
 | `--with` | Worker | Route |
 |---|---|---|
-| *(absent)* / `codex` | GPT-5.5 via Codex CLI | the default invocation below |
+| `codex` | GPT-5.5 via Codex CLI | the default invocation below |
 | `sonnet` | Claude Sonnet 5, user's own subscription | `references/glm-routes.md` Route C |
 | `glm` | GLM-5.2 | `references/glm-routes.md` Route A or B, whichever is installed |
 

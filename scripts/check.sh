@@ -52,6 +52,11 @@ ANCHOR='$(git rev-parse --short HEAD)+$(idx=$(mktemp -u); GIT_INDEX_FILE=$idx gi
 must_contain skills/taste/SKILL.md  "$ANCHOR" "taste writes the anchor refire recomputes"
 must_contain skills/refire/SKILL.md "$ANCHOR" "refire recomputes the anchor taste writes"
 
+# Every skill that writes code asks the user who cooks - no silent default worker.
+for s in fire serve refire simmer; do
+  must_contain "skills/$s/SKILL.md" 'Who cooks' "it writes code, so it asks the user who cooks"
+done
+
 # Every backgrounded worker invocation carries the no-nested-backgrounding rule.
 for f in $(grep -rl 'run_in_background: true' skills/); do
   grep -q 'nohup' "$f" || err "$f backgrounds a worker but drops the no-&/nohup/disown rule"

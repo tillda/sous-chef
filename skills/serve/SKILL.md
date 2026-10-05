@@ -1,6 +1,6 @@
 ---
 name: serve
-description: Runs the whole line autonomously - implement via Codex, cross-review, fix confirmed findings, verify, report once at the end. Use when the user wants a task done end to end ("serve this", "just get it done"), or as the default for spec-able implementation when the routing policy is autonomous. Announces once; stops only for hard blockers.
+description: Runs the whole line - asks once who cooks (Claude here or Codex), then implements, gets a Codex cross-review, fixes confirmed findings, verifies, and reports once at the end. Use when the user wants a task done end to end ("serve this", "just get it done"), or for spec-able work when the routing policy is autonomous. Stops only for hard blockers.
 ---
 
 # Serve - the whole line, one order
@@ -20,6 +20,7 @@ rewritten in full at every stage transition:
 
 ```
 task: <one line>
+cook: me | codex | <--with worker>
 started: <UTC ISO-8601 of stage 1's fire>
 budget: 5
 runs_used: 2 (fire, taste)
@@ -36,24 +37,34 @@ before firing anything. (A `/clear` or session death mints a new scratchpad - se
 is a single-session promise and does not survive that; the working tree and job
 dirs still hold the work.)
 
-## Choosing the worker
+## Who cooks - ask first
 
-If the arguments begin with `--with <worker>` (see fire's worker table), the
-choice applies to the whole line: fire and refire run on that worker; taste
-stays on Codex read-only when available, which makes the review cross-model
-when the worker is not Codex. Record the worker in `state.md` (`worker: sonnet`).
+Before stage 1, ask the user one question (AskUserQuestion), spelling out what each
+answer means for the whole line:
+
+- **Me** - Claude implements and fixes here in this session; Codex reviews.
+- **Codex** - Codex implements, reviews, and fixes; Claude reviews every diff and
+  verifies.
+
+Skip it only when the request already says who cooks ("serve this yourself",
+`--with <worker>` from fire's worker table). Record the answer as `cook:` in
+`state.md` - it is fire's and refire's who-cooks answer for this run, so those stages
+don't ask again. When you cook, stages 1 and 3 follow fire's and refire's **Me**
+path. Whoever cooks, taste stays on Codex read-only when
+available, which makes the review cross-model when the cook is not Codex.
 
 Whenever implementer and reviewer share a lineage, say so in the final report.
-The default all-Codex line always does: Codex reviews its own diff (fresh
+The all-Codex line always does: Codex reviews its own diff (fresh
 context - `codex exec` carries no session memory - but same lineage), so
 Claude's validation pass is the only cross-model check in that run.
 
 ## The pipeline
 
-1. **Fire** - per `/sous-chef:fire`: preflight, ticket, backgrounded run, plating with
-   your own verification. Record the job's `baseline.tree` path as `baseline:` in
-   state.md - later stages scope against it. If plating fails verification, one delta
-   round (it counts against the serve budget). The pipeline advances only on green
+1. **Fire** - per `/sous-chef:fire` on the recorded cook: preflight, ticket,
+   backgrounded run, plating with your own verification (or fire's Me path when you
+   cook). Record the `baseline.tree` path as `baseline:` in state.md - later stages
+   scope against it. If plating fails verification, one delta round (a Codex delta
+   counts against the serve budget). The pipeline advances only on green
    verification: still red after the delta means fix it yourself if a surgical fix
    will do, otherwise stop and report honestly - tasting a known-broken
    implementation wastes the remaining budget.
@@ -62,8 +73,9 @@ Claude's validation pass is the only cross-model check in that run.
    part of this order - then your validation pass; record the resulting
    `findings.md` path as `findings:`. Skip only if the diff is trivial (a few
    lines); say so in the final report.
-3. **Refire** - per `/sous-chef:refire`: if the `findings:` file lists any CONFIRMED
-   findings, one scoped fix run, then re-verify each finding at its cited location.
+3. **Refire** - per `/sous-chef:refire` on the recorded cook: if the `findings:` file
+   lists any CONFIRMED findings, one scoped fix, then re-verify each finding at its
+   cited location.
 4. **Plate** - run the verification commands one final time and serve.
 
 Stage transitions inherit fire/refire's changed-files-vs-`<files>` concurrent-edit
@@ -71,8 +83,9 @@ check; outside-list paths are named, warned, and excluded from the stage delta.
 
 ## Autonomy contract
 
-- Announce ONCE before stage 1: the task, the model, and that this is a full serve
-  (typically 2-3 Codex runs, expect 15-45 minutes at high reasoning effort). Then run
+- After the who-cooks answer, announce ONCE: the task, who cooks, and that this is a
+  full serve (when Codex cooks, typically 2-3 Codex runs - expect 15-45 minutes at
+  high reasoning effort). Then run
   the pipeline without asking anything between stages; a one-line tick as each stage
   completes ("fire plated, checks green - tasting now") keeps a long serve legible.
   No-asking is the contract, not silence.

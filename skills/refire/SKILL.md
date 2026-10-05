@@ -1,6 +1,6 @@
 ---
 name: refire
-description: Turns confirmed findings from a taste into one scoped fix run, then re-verifies each finding at its cited location. Use after /sous-chef:taste when the user says to fix the findings, apply the review, or refire it. Not for new feature work - that is a fresh /sous-chef:fire.
+description: Turns confirmed findings from a taste into one scoped fix - asks whether Claude fixes them here or Codex does - then re-verifies each finding at its cited location. Use after /sous-chef:taste when the user says to fix the findings, apply the review, or refire it. Not for new feature work - that is a fresh /sous-chef:fire.
 ---
 
 # Refire - the plate failed the pass, send it back
@@ -20,6 +20,17 @@ actually gone.
   against the code first (taste's step 3); never refire a finding you have not
   confirmed yourself.
 - No findings available? Say so and stop. Refire without a review is just a fire.
+
+## Who cooks - ask first
+
+Ask the user one question (AskUserQuestion): who fixes these - **me (Claude, here in
+this session)** or **Codex**. Skip it only when the user has already answered - in
+this request, or in the serve this refire is a stage of (its `cook:` line).
+
+- **Me** - fix the findings directly, under the ticket's contract below: only the
+  findings, only their files, no drive-by changes. Of the preflight, only the anchor
+  check (step 5) applies; then do plating steps 1 and 2.
+- **Codex** - the rest of this skill.
 
 ## Preflight
 

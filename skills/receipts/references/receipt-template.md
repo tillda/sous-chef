@@ -12,6 +12,11 @@ or budget spent - write one file to `.sous-chef/receipts/` in the repo root:
   contributes nothing. Dollar figures come from the [prices.md](prices.md)
   blends and get a `~`. A number you don't have is a line you drop - never a
   guess.
+- When Claude cooked (`cook: me` in serve's state.md, or the who-cooks line in
+  simmer's loop.md), nothing was delegated, so there is no saving to claim: the
+  worker line reads `worker: Claude, in session`, the cost line covers only
+  Codex taste runs (dropped if there were none), and the Fable savings line and
+  the shareable summary are dropped.
 
 ```markdown
 # serve: <task one-liner>
